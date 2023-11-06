@@ -1,0 +1,10 @@
+tensorboard
+easydict
+mxnet
+onnx
+sklearn
+opencv-python
+torch
+Pillow
+retinaface
+numpy
