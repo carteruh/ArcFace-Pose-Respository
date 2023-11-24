@@ -17,7 +17,7 @@ def DetectAndAlign(root_directory_path, save_root, not_detected_root):
     for root, dirs, files in os.walk(root_directory_path, topdown= True):
         # Go through each file and conduct facial detection and alignment
         for file in files:
-            if "jpg" in file:
+            if "jpeg" in file:
                 file_path = os.path.join(root, file)
                 
                 # Check if sub-folder path exists
@@ -25,7 +25,7 @@ def DetectAndAlign(root_directory_path, save_root, not_detected_root):
                 if not os.path.exists(new_dir_path):
                     os.makedirs(new_dir_path)
                 
-                face = RetinaFace.extract_faces(img_path= file_path, align= True, allow_upscaling= False)
+                face = RetinaFace.extract_faces(img_path= file_path, align= False, allow_upscaling= False)
                 if len(face) > 0:
                     face = Image.fromarray(face[0])
                     face = face.convert("RGB")
@@ -46,8 +46,8 @@ def DetectAndAlign(root_directory_path, save_root, not_detected_root):
                     
 
 if __name__ == '__main__':
-    root_dir = './data/300WLPA_2d/LFPW'
-    save_root=  './data/300WLPA_2d/LFPW_detected'
-    not_detected_root= './data/300WLPA_2d/LFPW_not_detected'
+    root_dir = './data/M2FPA/Train'
+    save_root=  './data/M2FPA/Train_detected'
+    not_detected_root= './data/M2FPA/Train_not_detected'
     DetectAndAlign(root_directory_path= root_dir, save_root= save_root, not_detected_root= not_detected_root)
     

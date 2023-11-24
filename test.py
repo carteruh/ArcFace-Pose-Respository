@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import make_interp_spline
 from models.resnet50 import iresnet50 
+from config.config import get_config
 
 
 def get_rank_k(query_list, gallery_list, model_weight_path, query_set_bin, gallery_set_bin):
@@ -79,35 +80,76 @@ def get_rank_k(query_list, gallery_list, model_weight_path, query_set_bin, galle
 
     return top_k_accuracy
 
+def visualize_pose_groups(query_bin_list, gallery_bin_list, fig_name, table_name):
+    results = {}
+
+    # Initialize figure and figure configurations
+    plt.figure()
+    plt.xticks(range(len(gallery_bin_list)),labels= ['-90_-70', '-70_-45','-45_-15',
+                          '-15_15', '15_45', '45_70', '70_90'])
+    plt.xlabel("Yaw Pose Groups in Gallery")
+    plt.ylabel("Rank-1 Accuracy")
+    plt.tight_layout(rect=[0, 0, 0.75, 1])
+    plt.subplots_adjust(right=1.3)
+    
+    # iterate through query list and gallery list
+    for query_bin in query_bin_list:
+        accuracies = []
+        top_k_list = []
+        for gallery_bin in gallery_bin_list:   
+            query_set_bin = f'{query_bin}'
+            gallery_set_bin = f'{gallery_bin}'
+
+            query_set_path = data[f'{query_bin}']['query']
+            gallery_set_path = data[f'{gallery_bin}']['gallery']
+            model_weight_path = f'./models/weights/weights_HELEN_pose_bin/resnet50_weights_HELEN_5_epochs_{query_set_bin}.pth'
+
+            top_k_accuracies = get_rank_k(query_list=query_set_path, gallery_list=gallery_set_path, model_weight_path=model_weight_path, query_set_bin=query_set_bin, gallery_set_bin=gallery_set_bin)
+            top_k_list.append(top_k_accuracies[0])
+            accuracies.append(f"Rank 1: {top_k_accuracies[0]:.4f}, Rank 5: {top_k_accuracies[4]:.4f}")
+
+        y_spline_vals = make_interp_spline(range(len(query_bin_list)), top_k_list)
+        x_vals = np.linspace(0, len(gallery_bin_list) - 1, 500)
+        y_vals = y_spline_vals(x_vals)
+        plt.plot(x_vals, y_vals)
+        results[f'Query {query_bin}'] = accuracies
+        
+    plt.legend(query_bin_list, bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left",
+                mode="expand", borderaxespad=0, ncol=3, title= 'Yaw Groups')
+    plt.savefig(f'{fig_name}', bbox_inches= 'tight')
+    plt.close()
+
+    results_df = pd.DataFrame(results, index=[f'Gallery {bin}' for bin in gallery_bin_list])
+
+    results_df.to_csv(f'{table_name}')
+    print(results_df)
+
 if __name__ == '__main__':
     os.makedirs('./data/plot_images/CMC_Curves/HELEN_CMC', exist_ok=True)  # Ensure the directory exists
+    
+    # Get configurations for testing
+    cfg = get_config()
 
     # Open and load the .pkl file
     with open('./test_sets/query_galleries_HELEN.pkl', 'rb') as f:
         data = pickle.load(f)
         
     # Define the bin lists for both pitch groups
-    # query_bin_list = ['-20_50_-15_15', '-50_-20_-15_15', '-20_50_-45_-15', 
-    #              '-50_-20_-45_-15', '-20_50_15_45', '-50_-20_15_45'
-    #              ,'-20_50_-70_-45', '-50_-20_-70_-45','-20_50_45_75', '-50_-20_45_75'
-    #              ,'-20_50_-90_-70', '-50_-20_-90_-70','-20_50_70_90', '-50_-20_70_90']
-    
     query_bin_list_low = ['-50_-20_-90_-70', '-50_-20_-70_-45','-50_-20_-45_-15',
                           '-50_-20_-15_15', '-50_-20_15_45', '-50_-20_45_70', '-50_-20_70_90']
     
     query_bin_list_high = ['-20_50_-90_-70', '-20_50_-70_-45','-20_50_-45_-15',
                           '-20_50_-15_15', '-20_50_15_45', '-20_50_45_70', '-20_50_70_90']
+    
+    # query_bin_list_high = ['-20_50_-45to-15and15to45', '-20_50_15_45', '-50_-20_15_45', '-20_50_-45_-15',
+    #                        '-50_-20_-45_-15']
 
     gallery_bin_list_low = ['-50_-20_-90_-70', '-50_-20_-70_-45','-50_-20_-45_-15',
                           '-50_-20_-15_15', '-50_-20_15_45', '-50_-20_45_70', '-50_-20_70_90']
     
     gallery_bin_list_high = ['-20_50_-90_-70', '-20_50_-70_-45','-20_50_-45_-15',
                           '-20_50_-15_15', '-20_50_15_45', '-20_50_45_70', '-20_50_70_90']
-    
-    # gallery_bin_list = ['-20_50_-15_15', '-50_-20_-15_15', '-20_50_-45_-15', 
-    #              '-50_-20_-45_-15', '-20_50_15_45', '-50_-20_15_45'
-    #              ,'-20_50_-70_-45', '-50_-20_-70_-45','-20_50_45_75', '-50_-20_45_75'
-    #              ,'-20_50_-90_-70', '-50_-20_-90_-70','-20_50_70_90', '-50_-20_70_90']
+
     
     results = {}
 
@@ -130,13 +172,17 @@ if __name__ == '__main__':
 
             query_set_path = data[f'{query_bin}']['query']
             gallery_set_path = data[f'{gallery_bin}']['gallery']
-            model_weight_path = f'./models/weights/weights_HELEN_pose_bin/resnet50_weights_HELEN_5_epochs_{query_set_bin}.pth'
-
+            # query_set_path = data['queries'][f'{query_bin}']
+            # gallery_set_path = data['galleries'][f'{gallery_bin}']
+            
+            # model_weight_path = f'./models/weights/weights_HELEN_pose_bin/resnet50_weights_HELEN_5_epochs_{query_set_bin}.pth'
+            model_weight_path = f'./models/weights/weights_HELEN_pose_bin/resnet50_weights_HELEN_5_epochs_-20_50_-45to-15and15to45.pth'
+            
             top_k_accuracies = get_rank_k(query_list=query_set_path, gallery_list=gallery_set_path, model_weight_path=model_weight_path, query_set_bin=query_set_bin, gallery_set_bin=gallery_set_bin)
             top_k_list.append(top_k_accuracies[0])
             accuracies.append(f"Rank 1: {top_k_accuracies[0]:.4f}, Rank 5: {top_k_accuracies[4]:.4f}")
 
-        y_spline_vals = make_interp_spline(range(len(query_bin_list_high)), top_k_list)
+        y_spline_vals = make_interp_spline(range(len(gallery_bin_list_high)), top_k_list)
         x_vals = np.linspace(0, len(gallery_bin_list_high) - 1, 500)
         y_vals = y_spline_vals(x_vals)
         plt.plot(x_vals, y_vals)
@@ -144,10 +190,10 @@ if __name__ == '__main__':
         
     plt.legend(query_bin_list_high, bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left",
                 mode="expand", borderaxespad=0, ncol=3, title= 'Yaw Groups')
-    plt.savefig(f'./data/plot_images/Pose_Bin_Visualizations/top_k_accuracies_pitch_high.jpg', bbox_inches= 'tight')
+    plt.savefig(f'./data/plot_images/Pose_Bin_Visualizations/top_k_accuracies_pitch_merged.jpg', bbox_inches= 'tight')
     plt.close()
 
     results_df = pd.DataFrame(results, index=[f'Gallery {bin}' for bin in gallery_bin_list_high])
 
-    results_df.to_csv('accuracies_table_pitch_-20_50.csv')
+    results_df.to_csv('accuracies_table_pitch_merged.csv')
     print(results_df)

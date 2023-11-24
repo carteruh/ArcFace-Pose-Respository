@@ -54,7 +54,7 @@ if __name__ == '__main__':
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
     
-    LPA_D = torchvision.datasets.ImageFolder(root= "./data/300WLPA_2d/HELEN_train", transform= transform_pose)
+    LPA_D = torchvision.datasets.ImageFolder(root= "./data/M2FPA/Test", transform= transform_pose)
     num_classes = len(set(LPA_D.classes))
     
     # Estimate the Pitch and Yaw of every image in the MAPIR Dataset
@@ -62,14 +62,14 @@ if __name__ == '__main__':
     yaw_list = []
 
     for idx, (filename, label) in enumerate(LPA_D.imgs):
-        filename = filename.strip('.jpg').split('/')[-1].split('_')
+        filename = filename.strip('.jpeg').split('/')[-1].split('_')
         print(filename)
-        pitch, yaw, roll = filename[4:len(filename)]
+        pitch, yaw = filename[4:]
 
-        pitch_list.append(math.degrees(float(pitch)))
-        yaw_list.append(math.degrees(float(yaw)))
+        pitch_list.append(float(pitch))
+        yaw_list.append(float(yaw))
 
-        print("Pitch: {}, Yaw: {}, Roll: {}".format(pitch, yaw, roll))
+        print("Pitch: {}, Yaw: {}".format(pitch, yaw))
         
     # Create a figure and axes for the plot
     fig, ax = plt.subplots()

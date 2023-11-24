@@ -31,11 +31,11 @@ from datasets.dataset import Image_Dataset
 import os
 
 
-def train_bins():
+def train_bins(file_path):
     # Get personal configuration
     cfg = get_config()
-    data_path = 'data/pickles/helen_train.pkl'
-    file_path = './data/300WLPA_2d/HELEN_train_bins_rad2degrees'
+    # data_path = 'data/pickles/helen_train.pkl'
+    # file_path = './data/300WLPA_2d/HELEN_train_bins_merged'
     
     for pose_bin in os.listdir(file_path):
         # Initialize Device
@@ -44,6 +44,7 @@ def train_bins():
         # transform into tensors
         transform_train = transforms.Compose([
             transforms.RandomHorizontalFlip(),
+            transforms.Grayscale(num_output_channels=1),
             transforms.RandomResizedCrop((112,112)),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
@@ -56,7 +57,8 @@ def train_bins():
         ])
         
         # Initialize Image Dataset Class
-        train_bin = torchvision.datasets.ImageFolder(root= f'./data/300WLPA_2d/HELEN_train_bins_rad2degrees/{pose_bin}', transform= transform)
+        # train_bin = torchvision.datasets.ImageFolder(root= f'./data/300WLPA_2d/HELEN_train_bins_rad2degrees/{pose_bin}', transform= transform)
+        train_bin = torchvision.datasets.ImageFolder(root= f'./data/300WLPA_2d/HELEN_train_bins/{pose_bin}', transform= transform)
         # train_bin = Image_Dataset(data_path, transform)
         dataloader = DataLoader(dataset=train_bin, batch_size=128, shuffle=True, num_workers=4)
         num_classes = len(set(train_bin))
@@ -177,6 +179,7 @@ def train_bins():
         visualize_loss(history= history, bin= pose_bin)
     
 if __name__ == '__main__':
-    train_bins()
+    file_path = './data/300WLPA_2d/HELEN_train_bins'
+    train_bins(file_path= file_path)
     
     

@@ -6,3 +6,5 @@
 *.pkl
 /models/weights/
 *.csv
+*.jpg
+*.jpeg

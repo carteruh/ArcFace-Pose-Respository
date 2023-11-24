@@ -20,7 +20,7 @@ def merge_identity_subfolders(dataset_path):
         if len(parts) < 3: 
             # Not in the expected format, skip
             continue
-        identity = f"{parts[0]}_{parts[1]}"
+        identity = f"{parts[0]}_{parts[1]}_{parts[2]}"
         
         # Collect all subfolders belonging to the same identity
         if identity not in identity_map:
@@ -43,5 +43,5 @@ def merge_identity_subfolders(dataset_path):
             shutil.rmtree(subfolder_path)
 
 if __name__ == '__main__':
-    root_directory = './data/300WLPA_2d/HELEN_detected'
+    root_directory = './data/300WLPA_2d/AFW_detected/'
     merge_identity_subfolders(root_directory)

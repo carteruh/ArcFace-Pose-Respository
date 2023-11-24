@@ -3,6 +3,7 @@ from easydict import EasyDict as edict
 def get_config():
     config = edict()
 
+    # Training configurations
     config.lr = 1e-1
     config.weight_decay = 5e-4
     config.backbone = "ir50"
@@ -17,5 +18,5 @@ def get_config():
     config.scale= 64.0
     config.margin= 0.5
     config.pose_bin = 'all_pose_HELEN'
-    
+ 
     return config

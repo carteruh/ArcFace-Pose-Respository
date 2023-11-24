@@ -44,5 +44,5 @@ def MakeFoldersTrainTest(dataset_dir, dist_dir):
             shutil.copy(src_path, dst_path)
             
 if __name__ == '__main__':
-    dataset_dir = "./data/300WLPA_2d/HELEN_detected/"
+    dataset_dir = "./data/300WLPA_2d/HELEN_detected_v2/"
     MakeFoldersTrainTest(dataset_dir=dataset_dir, dist_dir= './data/300WLPA_2d/')
