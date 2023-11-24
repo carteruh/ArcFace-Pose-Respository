@@ -1,1 +1,3 @@
-### Pose Groop Study on Low Resolution Images 
+### Pose Group Study on Low-Resolution Images 
+
+This study involves the use of State of Art Backbones such as Improve Residual Networks (i.e iresnet50) to evaluate the face recognition rates of the ArcFace margin-penalized CNN-based model on different pose groups. The goal of this research is to study the relationships between pose groups and how the embeddings of each pose group can be generalized across different pose ranges. The focus of the pose groups will be based on pitch and yaw variations of the face. Detection models such as RetinaFace are used to detect and align the image to the facial area, optimizing recognition tasks. 
