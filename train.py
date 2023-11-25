@@ -30,14 +30,15 @@ from visualize_loss import visualize_loss
 from datasets.dataset import Image_Dataset
 import os
 
-
 def train_bins(file_path):
     # Get personal configuration
     cfg = get_config()
     # data_path = 'data/pickles/helen_train.pkl'
     # file_path = './data/300WLPA_2d/HELEN_train_bins_merged'
+    pose_bin_list = ['-20_50_+-15_+-45']
     
-    for pose_bin in os.listdir(file_path):
+    # for pose_bin in os.listdir(file_path):
+    for pose_bin in pose_bin_list:
         # Initialize Device
         device = torch.device("cuda")
         
@@ -57,7 +58,6 @@ def train_bins(file_path):
         ])
         
         # Initialize Image Dataset Class
-        # train_bin = torchvision.datasets.ImageFolder(root= f'./data/300WLPA_2d/HELEN_train_bins_rad2degrees/{pose_bin}', transform= transform)
         train_bin = torchvision.datasets.ImageFolder(root= f'./data/300WLPA_2d/HELEN_train_bins/{pose_bin}', transform= transform)
         # train_bin = Image_Dataset(data_path, transform)
         dataloader = DataLoader(dataset=train_bin, batch_size=128, shuffle=True, num_workers=4)
@@ -106,7 +106,7 @@ def train_bins(file_path):
         best_acc = 0.0
 
 
-        for epoch in range(5):
+        for epoch in range(10):
             epoch_start = time.time()
             print("Epoch: {}/{}".format(epoch + 1, 10))
 
@@ -125,8 +125,8 @@ def train_bins(file_path):
             
             if epoch % 50 == 0 and epoch != 0:
                 # Save Weights from metric_fc and resnet50
-                torch.save(models.state_dict(), f'./models/weights/weights_HELEN_pose_bin/resnet50_weights_HELEN_5_epochs_{pose_bin}.pth')
-                torch.save(metric_fc.state_dict(), f'./models/weights/weights_HELEN_pose_bin/arcface_weights_HELEN_5_epochs_{pose_bin}.pth')
+                torch.save(models.state_dict(), f'./models/weights/weights_HELEN_pose_bin/resnet50_weights_HELEN_10_epochs_{pose_bin}.pth')
+                torch.save(metric_fc.state_dict(), f'./models/weights/weights_HELEN_pose_bin/arcface_weights_HELEN_10_epochs_{pose_bin}.pth')
 
 
             for i, (images, labels) in enumerate(dataloader):
@@ -172,14 +172,12 @@ def train_bins(file_path):
             history.append({'loss': train_loss / len(dataloader), 'acc': train_acc / len(dataloader)})
 
         # Save Weights from metric_fc and resnet50
-        torch.save(models.state_dict(), f'./models/weights/weights_HELEN_pose_bin/resnet50_weights_HELEN_5_epochs_{pose_bin}.pth')
-        torch.save(metric_fc.state_dict(), f'./models/weights/weights_HELEN_pose_bin/arcface_weights_HELEN_5_epochs_{pose_bin}.pth')
+        torch.save(models.state_dict(), f'./models/weights/weights_HELEN_pose_bin/resnet50_weights_HELEN_10_epochs_{pose_bin}.pth')
+        torch.save(metric_fc.state_dict(), f'./models/weights/weights_HELEN_pose_bin/arcface_weights_HELEN_10_epochs_{pose_bin}.pth')
         print("Saved")
         
         visualize_loss(history= history, bin= pose_bin)
     
 if __name__ == '__main__':
-    file_path = './data/300WLPA_2d/HELEN_train_bins'
+    file_path = './data/M2FPA/Train_Bins'
     train_bins(file_path= file_path)
-    
-    

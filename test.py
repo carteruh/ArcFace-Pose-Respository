@@ -34,14 +34,14 @@ def get_rank_k(query_list, gallery_list, model_weight_path, query_set_bin, galle
             img = transform(Image.open(image_path)).unsqueeze(0).to("cuda")
             embedding = model(img)
             gallery_set['embedding'].append(embedding)
-            label = image_path.split('/')[-2].split('_')[1]
+            label = image_path.split('/')[-2]
             gallery_set['label'].append(int(label))  # Cast label to int assuming it's an integer ID
 
         for image_path in query_list:
             img = transform(Image.open(image_path)).unsqueeze(0).to("cuda")
             embedding = model(img)
             query_set['embedding'].append(embedding)
-            label = image_path.split('/')[-2].split('_')[1]
+            label = image_path.split('/')[-2]
             query_set['label'].append(int(label))  # Cast label to int assuming it's an integer ID
 
         gallery_set["embedding"] = torch.stack(gallery_set["embedding"]).squeeze()
@@ -125,30 +125,32 @@ def visualize_pose_groups(query_bin_list, gallery_bin_list, fig_name, table_name
     print(results_df)
 
 if __name__ == '__main__':
-    os.makedirs('./data/plot_images/CMC_Curves/HELEN_CMC', exist_ok=True)  # Ensure the directory exists
+    os.makedirs('./data/plot_images/CMC_Curves/M2FPA', exist_ok=True)  # Ensure the directory exists
     
     # Get configurations for testing
     cfg = get_config()
 
     # Open and load the .pkl file
-    with open('./test_sets/query_galleries_HELEN.pkl', 'rb') as f:
+    with open('./test_sets/query_galleries_M2FPA_Bins.pkl', 'rb') as f:
         data = pickle.load(f)
         
     # Define the bin lists for both pitch groups
-    query_bin_list_low = ['-50_-20_-90_-70', '-50_-20_-70_-45','-50_-20_-45_-15',
-                          '-50_-20_-15_15', '-50_-20_15_45', '-50_-20_45_70', '-50_-20_70_90']
+    # query_bin_list_low = ['-50_0_-90_-70', '-50_0_-70_-45','-50_0_-45_-15',
+    #                       '-50_0_-15_15', '-50_0_15_45', '-50_0_45_70', '-50_0_70_90']
     
-    query_bin_list_high = ['-20_50_-90_-70', '-20_50_-70_-45','-20_50_-45_-15',
-                          '-20_50_-15_15', '-20_50_15_45', '-20_50_45_70', '-20_50_70_90']
+    # query_bin_list_high = ['0_50_-90_-70', '0_50_-70_-45','0_50_-45_-15',
+    #                       '0_50_-15_15', '0_50_15_45', '0_50_45_70', '0_50_70_90']
     
-    # query_bin_list_high = ['-20_50_-45to-15and15to45', '-20_50_15_45', '-50_-20_15_45', '-20_50_-45_-15',
-    #                        '-50_-20_-45_-15']
+    query_bin_list_low = ['-50_0_+-15_+-45']
+    
+    query_bin_list_high = ['0_50_+-15_+-45']
+    
 
-    gallery_bin_list_low = ['-50_-20_-90_-70', '-50_-20_-70_-45','-50_-20_-45_-15',
-                          '-50_-20_-15_15', '-50_-20_15_45', '-50_-20_45_70', '-50_-20_70_90']
+    gallery_bin_list_low = ['-50_0_-90_-70', '-50_0_-70_-45','-50_0_-45_-15',
+                          '-50_0_-15_15', '-50_0_15_45', '-50_0_45_70', '-50_0_70_90']
     
-    gallery_bin_list_high = ['-20_50_-90_-70', '-20_50_-70_-45','-20_50_-45_-15',
-                          '-20_50_-15_15', '-20_50_15_45', '-20_50_45_70', '-20_50_70_90']
+    gallery_bin_list_high = ['0_50_-90_-70', '0_50_-70_-45','0_50_-45_-15',
+                          '0_50_-15_15', '0_50_15_45', '0_50_45_70', '0_50_70_90']
 
     
     results = {}
@@ -175,8 +177,7 @@ if __name__ == '__main__':
             # query_set_path = data['queries'][f'{query_bin}']
             # gallery_set_path = data['galleries'][f'{gallery_bin}']
             
-            # model_weight_path = f'./models/weights/weights_HELEN_pose_bin/resnet50_weights_HELEN_5_epochs_{query_set_bin}.pth'
-            model_weight_path = f'./models/weights/weights_HELEN_pose_bin/resnet50_weights_HELEN_5_epochs_-20_50_-45to-15and15to45.pth'
+            model_weight_path = f'./models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_10_epochs_{query_set_bin}.pth'
             
             top_k_accuracies = get_rank_k(query_list=query_set_path, gallery_list=gallery_set_path, model_weight_path=model_weight_path, query_set_bin=query_set_bin, gallery_set_bin=gallery_set_bin)
             top_k_list.append(top_k_accuracies[0])
@@ -190,10 +191,10 @@ if __name__ == '__main__':
         
     plt.legend(query_bin_list_high, bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left",
                 mode="expand", borderaxespad=0, ncol=3, title= 'Yaw Groups')
-    plt.savefig(f'./data/plot_images/Pose_Bin_Visualizations/top_k_accuracies_pitch_merged.jpg', bbox_inches= 'tight')
+    plt.savefig(f'./data/plot_images/Pose_Bin_Visualizations/top_k_accuracies_M2FPA_0_50_merged_+-15_+-45.jpg', bbox_inches= 'tight')
     plt.close()
 
     results_df = pd.DataFrame(results, index=[f'Gallery {bin}' for bin in gallery_bin_list_high])
 
-    results_df.to_csv('accuracies_table_pitch_merged.csv')
+    results_df.to_csv('accuracies_table_pitch_0_50_M2FPA_merged_+-15_+-45.csv')
     print(results_df)
