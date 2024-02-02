@@ -1,11 +1,6 @@
 import torch
 import numpy as np
-import math
-import sklearn
-import torchvision
-import sklearn
 import torch
-import torchvision
 import numpy as np
 import shutil
 import os
@@ -49,7 +44,7 @@ def Get_Pose_Bin(folder_path, dest_path, pose_bins):
                         img_path = os.path.join(root, file)
                         filename = file.strip('.jpeg').split('_')
                         # print(filename)
-                        pitch, yaw = filename[2:]
+                        pitch, yaw = filename[-2:]
                         pitch, yaw = float(pitch), float(yaw)                      
                                                                 
                         # Check if image is within desired bin range 
@@ -67,14 +62,14 @@ if __name__ == '__main__':
     #              (-45, 15, 60, 90), (-100, -45, 60, 90), (-45, 15, -90, -60), 
     #              (-100, -45, -90, -60)]
     
-    # pose_bins = [(-20, 50, -30, 30), (-50, -20, -30, 30), (-20, 50, -60, -30), 
-    #              (-50, -20, -60, -30), (-20, 50, 30, 60), (-50, -20, 30, 60)
-    #              ,(-20, 50, -90, -60), (-50, -20, -90, -60),(-20, 50, 60, 90), (-50, -20, 60, 90)]
+    # pose_bins = [(-20, 30, -30, 30), (-30, -20, -30, 30), (-20, 30, -60, -30), 
+    #              (-30, -20, -60, -30), (-20, 30, 30, 60), (-30, -20, 30, 60)
+    #              ,(-20, 30, -90, -60), (-30, -20, -90, -60),(-20, 30, 60, 90), (-30, -20, 60, 90)]
     
         
-    pose_bins = [(0, 50, -15, 15), (-50, 0, -15, 15), (0, 50, -45, -15), 
-                 (-50, 0, -45, -15), (0, 50, 15, 45), (-50, 0, 15, 45)
-                 ,(0, 50, -70, -45), (-50, 0, -70, -45),(0, 50, 45, 70), (-50, 0, 45, 70)
-                 ,(0, 50, -90,-70), (-50, 0, -90,-70),(0, 50, 70, 90), (-50, 0, 70, 90)]
+    pose_bins = [(0, 30, -15, 15), (-30, 0, -15, 15), (0, 30, -45, -15), 
+                 (-30, 0, -45, -15), (0, 30, 15, 45), (-30, 0, 15, 45)
+                 ,(0, 30, -70, -45), (-30, 0, -70, -45),(0, 30, 45, 70), (-30, 0, 45, 70)
+                 ,(0, 30, -90,-70), (-30, 0, -90,-70),(0, 30, 70, 90), (-30, 0, 70, 90)]
     
-    Get_Pose_Bin(folder_path= "./data/M2FPA/Train_detected", dest_path= "./data/M2FPA/Train_Bins/", pose_bins= pose_bins)
+    Get_Pose_Bin(folder_path= "./data/M2FPA/Train_Cropped_Expanded", dest_path= "./data/M2FPA/Train_Bins_Cropped_Expanded_Processed/", pose_bins= pose_bins)

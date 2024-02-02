@@ -2,6 +2,7 @@ import os
 import pickle
 from collections import Counter
 
+'''This will create the query and gallery sets for probe-gallery testing'''
 def create_pose_bin_structure(base_path):
     # Get a list of all pose bin subdirectories
     pose_bins = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
@@ -38,10 +39,10 @@ def create_pose_bin_structure(base_path):
         for id_name in valid_ids:
             # First image as query, rest as gallery
             pose_bin_structure[pose_bin]["query"].append(pose_bin_images[pose_bin][id_name][0])
-            pose_bin_structure[pose_bin]["gallery"].extend(pose_bin_images[pose_bin][id_name][1:])
+            pose_bin_structure[pose_bin]["gallery"].extend(pose_bin_images[pose_bin][id_name][1:16])
     
     # Save the structure as a .pkl file
-    with open('./test_sets/query_galleries_M2FPA_Bins.pkl', 'wb') as f:
+    with open('./test_sets/query_galleries_M2FPA_Bins_Raw.pkl', 'wb') as f:
         pickle.dump(pose_bin_structure, f)
 
     return pose_bin_structure
@@ -69,5 +70,5 @@ def normalize_gallery_set(file_path):
         print()
     
 if __name__ == '__main__':
-    base_path = "./data/M2FPA/Test_Bins"
+    base_path = "./data/M2FPA/Test_Bins_Raw"
     pose_bin_structure = create_pose_bin_structure(base_path)
