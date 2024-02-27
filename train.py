@@ -49,18 +49,18 @@ def train_bins(file_path, target_bin= None):
         device = torch.device("cuda")
         
         # transform into tensors
-        transform_train = transforms.Compose([
-            transforms.RandomHorizontalFlip(),
-            transforms.Resize((112, 112)),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-        ])
-        
-        # transform = transforms.Compose([
+        # transform_train = transforms.Compose([
+        #     transforms.RandomHorizontalFlip(),
         #     transforms.Resize((112, 112)),
         #     transforms.ToTensor(),
         #     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         # ])
+        
+        transform = transforms.Compose([
+            transforms.Resize((112, 112)),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ])
         
         # transform = transforms.Compose([
         #     transforms.ToTensor(),
@@ -68,7 +68,7 @@ def train_bins(file_path, target_bin= None):
         # ])
         
         # Initialize Image Dataset Class
-        train_bin = torchvision.datasets.ImageFolder(root= f'./data/M2FPA/{bin_name}/{pose_bin}', transform= transform_train)
+        train_bin = torchvision.datasets.ImageFolder(root= f'./data/M2FPA/{bin_name}/{pose_bin}', transform= transform)
         # train_bin = Image_Dataset(data_path, transform)
         dataloader = DataLoader(dataset=train_bin, batch_size=256, shuffle=True, num_workers=4)
         num_classes = len(set(train_bin))
@@ -187,4 +187,4 @@ def train_bins(file_path, target_bin= None):
     
 if __name__ == '__main__':
     file_path = './data/M2FPA/Train_Bins_Raw'
-    train_bins(file_path= file_path, target_bin= ['-30_0_-45_0_45', '0_30_-45_0_45'])
+    train_bins(file_path= file_path, target_bin= ['-30_-30_-45_0_45', '30_30_-45_0_45'])

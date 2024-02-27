@@ -42,7 +42,7 @@ def create_pose_bin_structure(base_path):
             pose_bin_structure[pose_bin]["gallery"].extend(pose_bin_images[pose_bin][id_name][1:16])
     
     # Save the structure as a .pkl file
-    with open('./test_sets/query_galleries_M2FPA_Bins_Augment.pkl', 'wb') as f:
+    with open('./test_sets/query_galleries_M2FPA_Bins_all_pitch.pkl', 'wb') as f:
         pickle.dump(pose_bin_structure, f)
 
     return pose_bin_structure
@@ -70,5 +70,5 @@ def normalize_gallery_set(file_path):
         print()
     
 if __name__ == '__main__':
-    base_path = "./data/M2FPA/Test_Bins_Raw"
+    base_path = "./data/M2FPA/Test_Bins_all_pitch"
     pose_bin_structure = create_pose_bin_structure(base_path)

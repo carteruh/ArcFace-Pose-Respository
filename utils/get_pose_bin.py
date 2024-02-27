@@ -48,8 +48,8 @@ def Get_Pose_Bin(folder_path, dest_path, pose_bins):
                         pitch, yaw = float(pitch), float(yaw)                      
                                                                 
                         # Check if image is within desired bin range 
-                        if (yaw >= yaw_min) and (yaw <= yaw_max) and (pitch >= pitch_min) and (pitch <= pitch_max):
-                        # if yaw in  [0, 45, -45] and (pitch >= pitch_min) and (pitch <= pitch_max):
+                        # if (yaw >= yaw_min) and (yaw <= yaw_max) and (pitch >= pitch_min) and (pitch <= pitch_max):
+                        if yaw in  [0, 45, -45] and (pitch >= pitch_min) and (pitch <= pitch_max):
                             file_dest_path = os.path.join(dest_path, ID)
                             file_source_path = os.path.join(root, file)
                             #print(f'Pitch: {pitch}, Yaw: {yaw}')
@@ -58,10 +58,10 @@ def Get_Pose_Bin(folder_path, dest_path, pose_bins):
                             shutil.copy(file_source_path, file_dest_path)
 
 if __name__ == '__main__':        
-    pose_bins = [(0, 30, -15, 15), (-30, 0, -15, 15), (0, 30, -45, -15), 
-                 (-30, 0, -45, -15), (0, 30, 15, 45), (-30, 0, 15, 45)
-                 ,(0, 30, -70, -45), (-30, 0, -70, -45),(0, 30, 45, 70), (-30, 0, 45, 70)
-                 ,(0, 30, -90,-70), (-30, 0, -90,-70),(0, 30, 70, 90), (-30, 0, 70, 90)]
-    pose_bins = [(30, 30, -45, 45), (-30, -30, -45, 45)]
+    pose_bins = [(-30, 30, -15, 15), (-30, 30, -15, 15), (-30, 30, -45, -15), 
+                 (-30, 30, -45, -15), (-30, 30, 15, 45), (-30, 30, 15, 45)
+                 ,(-30, 30, -70, -45), (-30, 30, -70, -45),(-30, 30, 45, 70), (-30, 30, 45, 70)
+                 ,(-30, 30, -90,-70), (-30, 30, -90,-70),(-30, 30, 70, 90), (-30, 30, 70, 90)]
+    # pose_bins = [(30, 30, -45, 45), (-30, -30, -45, 45)]
     
-    Get_Pose_Bin(folder_path= "./data/M2FPA/Train", dest_path= "./data/M2FPA/Train_Bins_Raw_2/", pose_bins= pose_bins)
+    Get_Pose_Bin(folder_path= "./data/M2FPA/Test", dest_path= "./data/M2FPA/Test_Bins_all_pitch/", pose_bins= pose_bins)

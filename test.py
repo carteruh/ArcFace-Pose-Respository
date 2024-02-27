@@ -122,15 +122,17 @@ def visualize_pose_groups(query_bin_list: list,  # The pose bins that are evalua
         plt.plot(x_vals, y_vals)
         results[f'Query {query_bin}'] = accuracies
         
+        # Compute the average top-1 accuracy for the query set and append to end of the list
+        average_top_1 = np.mean([float(acc.split(",")[0].split(": ")[1]) for acc in accuracies]) 
+        results[f'Query {query_bin}'].append(f'{average_top_1:.4f}')
+
+        
     plt.legend(query_bin_list, bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left",
                 mode="expand", borderaxespad=0, ncol=3, title= 'Yaw Groups')
     plt.savefig(f'./data/plot_images/Pose_Bin_Visualizations/{fig_name}.jpg', bbox_inches= 'tight')
     plt.close()
     
-    average_top_1 = [np.mean([float(acc.split(",")[0].split(": ")[1]) for acc in accuracies]) for accuracies in results.values()]
-    results['Average'] = [f"{avg_acc:.4f}" for avg_acc in average_top_1]  
-
-    results_df = pd.DataFrame(results, index=[f'Gallery {bin}' for bin in gallery_bin_list])
+    results_df = pd.DataFrame(results, index= [f'Gallery {bin}' for bin in gallery_bin_list] + ['Average'])
 
     results_df.to_csv(f'./data/table_metrics/{table_name}.csv')
     print(results_df)
@@ -143,21 +145,24 @@ if __name__ == '__main__':
     cfg = get_config()
     
     # Define the bin lists for both pitch groups
-    # query_bin_list_low = ['-30_0_-90_-70', '-30_0_-70_-45','-30_0_-45_-15',
-    #                       '-30_0_-15_15', '-30_0_15_45', '-30_0_45_70', '-30_0_70_90']
+    query_bin_list_low = ['-30_0_-90_-70', '-30_0_-70_-45','-30_0_-45_-15',
+                          '-30_0_-15_15', '-30_0_15_45', '-30_0_45_70', '-30_0_70_90']
     
     # query_bin_list_high = ['0_30_-90_-70', '0_30_-70_-45','0_30_-45_-15',
     #                       '0_30_-15_15', '0_30_15_45', '0_30_45_70', '0_30_70_90']
     
-    query_bin_list_low = ['-30_0_-45_0_45']
+    # query_bin_list_low = ['-30_-30_-45_0_45']
     
-    query_bin_list_high = ['0_30_15_45']
+    query_bin_list_high = ['30_30_-45_0_45']
     
     gallery_bin_list_low = ['-30_0_-90_-70', '-30_0_-70_-45','-30_0_-45_-15',
                           '-30_0_-15_15', '-30_0_15_45', '-30_0_45_70', '-30_0_70_90']
     
     gallery_bin_list_high = ['0_30_-90_-70', '0_30_-70_-45','0_30_-45_-15',
                           '0_30_-15_15', '0_30_15_45', '0_30_45_70', '0_30_70_90']
+    
+    gallery_bin_list_all_pitch = ['-30_30_-90_-70', '-30_30_-70_-45','-30_30_-45_-15',
+                          '-30_30_-15_15', '-30_30_15_45', '-30_30_45_70', '-30_30_70_90']
     
     # gallery_bin_list_augment = ['0_30_-45_-15_Augmented', '-30_0_-45_-15_Augmented', '0_30_15_45_Augmented', '-30_0_15_45_Augmented']
     
@@ -168,9 +173,9 @@ if __name__ == '__main__':
     # Evaluate the probe and galleries
     visualize_pose_groups(query_bin_list= query_bin_list_low, 
                           gallery_bin_list= gallery_bin_list_low, 
-                          query_gallery_set_file_name= 'query_galleries_M2FPA_Bins_Augment', 
-                          fig_name= 'top_k_accuracies_M2FPA_Raw_query_pitch_-30_0_yaw_-45_0_45',
-                          table_name= "accuracies_table_pitch_query_pitch_-30_0_M2FPA_Raw_yaw_-45_0_45",
+                          query_gallery_set_file_name= 'query_galleries_M2FPA_Bins_Raw', 
+                          fig_name= 'top_k_accuracies_M2FPA_Raw_query_pitch_-30_0_yaw_all_poses',
+                          table_name= "accuracies_table_pitch_query_pitch_-30_0_M2FPA_Raw_yaw_all_poses",
                           image_type= "Raw",
                           labels= labels
                           )
