@@ -44,4 +44,4 @@ def merge_folders(folder_1, folder_2, destination_folder_path):
     copy_files(folder_2, destination_folder_path)
 
 if __name__ == '__main__':
-    merge_folders('data/M2FPA/Test_Bins_Cropped_Expanded_Processed/-30_0_15_45', 'data/M2FPA/Test_Bins_Cropped_Expanded_Processed/-30_0_-45_-15', 'data/M2FPA/Test_Bins_Cropped_Expanded_Processed/-30_0_+-15_+-45')
+    merge_folders('data/M2FPA/Test_Bins_Raw/0_30_22.5_45', 'data/M2FPA/Test_Bins_Raw/0_30_-45_-22.5', 'data/M2FPA/Test_Bins_Raw/0_30_+-22.5_+-45')

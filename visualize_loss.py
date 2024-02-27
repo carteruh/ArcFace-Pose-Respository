@@ -19,5 +19,5 @@ def visualize_loss(history, bin):
     ax2.legend();
 
     fig.show()
-    plt.savefig(f'./data/plot_images/train_HELEN/{bin}.jpg', bbox_inches='tight')
+    plt.savefig(f'./data/plot_images/train_loss_curves/{bin}.jpg', bbox_inches='tight')
 

@@ -18,5 +18,10 @@ def get_config():
     config.scale= 64.0
     config.margin= 0.5
     config.pose_bin = 'all_pose_HELEN'
+    
+    # Test configurations 
+    config.table_name = "accuracies_table_pitch_0_30_Processed"
+    config.visualization_name = "top_k_accuracies_M2GPA_Processed_pitch_0_30"
+    config.dataset_type = "M2FPA_Cropped_10_epochs"
  
     return config

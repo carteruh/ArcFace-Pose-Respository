@@ -49,6 +49,7 @@ def Get_Pose_Bin(folder_path, dest_path, pose_bins):
                                                                 
                         # Check if image is within desired bin range 
                         if (yaw >= yaw_min) and (yaw <= yaw_max) and (pitch >= pitch_min) and (pitch <= pitch_max):
+                        # if yaw in  [0, 45, -45] and (pitch >= pitch_min) and (pitch <= pitch_max):
                             file_dest_path = os.path.join(dest_path, ID)
                             file_source_path = os.path.join(root, file)
                             #print(f'Pitch: {pitch}, Yaw: {yaw}')
@@ -56,20 +57,11 @@ def Get_Pose_Bin(folder_path, dest_path, pose_bins):
                             os.makedirs(file_dest_path, exist_ok= True)
                             shutil.copy(file_source_path, file_dest_path)
 
-if __name__ == '__main__':
-    # pose_bins = [(-45, 15, -30, 30), (-100, -45, -30, 30), (-45, 15, -60, -30), 
-    #              (-100, -45, -60, -30), (-45, 15, 30, 60), (-100, -45, 30, 60), 
-    #              (-45, 15, 60, 90), (-100, -45, 60, 90), (-45, 15, -90, -60), 
-    #              (-100, -45, -90, -60)]
-    
-    # pose_bins = [(-20, 30, -30, 30), (-30, -20, -30, 30), (-20, 30, -60, -30), 
-    #              (-30, -20, -60, -30), (-20, 30, 30, 60), (-30, -20, 30, 60)
-    #              ,(-20, 30, -90, -60), (-30, -20, -90, -60),(-20, 30, 60, 90), (-30, -20, 60, 90)]
-    
-        
+if __name__ == '__main__':        
     pose_bins = [(0, 30, -15, 15), (-30, 0, -15, 15), (0, 30, -45, -15), 
                  (-30, 0, -45, -15), (0, 30, 15, 45), (-30, 0, 15, 45)
                  ,(0, 30, -70, -45), (-30, 0, -70, -45),(0, 30, 45, 70), (-30, 0, 45, 70)
                  ,(0, 30, -90,-70), (-30, 0, -90,-70),(0, 30, 70, 90), (-30, 0, 70, 90)]
+    pose_bins = [(30, 30, -45, 45), (-30, -30, -45, 45)]
     
-    Get_Pose_Bin(folder_path= "./data/M2FPA/Train_Cropped_Expanded", dest_path= "./data/M2FPA/Train_Bins_Cropped_Expanded_Processed/", pose_bins= pose_bins)
+    Get_Pose_Bin(folder_path= "./data/M2FPA/Train", dest_path= "./data/M2FPA/Train_Bins_Raw_2/", pose_bins= pose_bins)

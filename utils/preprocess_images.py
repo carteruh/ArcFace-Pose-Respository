@@ -97,7 +97,7 @@ def preprocess_image(file_path, output_size):
 
 if __name__ == '__main__':
     # Set the directory paths
-    input_dir = './data/M2FPA/Test_Bins_Cropped_Expanded_Processed'
+    input_dir = './data/M2FPA/Train_Bins_Cropped_Expanded_Processed/0_30_-30_30_+-70_+-90'
 
     # Set the desired size for padding
     desired_size = 112

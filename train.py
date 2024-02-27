@@ -35,6 +35,7 @@ def train_bins(file_path, target_bin= None):
     cfg = get_config()
     # data_path = 'data/pickles/helen_train.pkl'
     # file_path = './data/300WLPA_2d/HELEN_train_bins_merged'
+    bin_name = file_path.split('/')[-1]
     
     if target_bin:
         pose_bin_list = target_bin
@@ -43,22 +44,23 @@ def train_bins(file_path, target_bin= None):
     
     # for pose_bin in os.listdir(file_path):
     for pose_bin in pose_bin_list:
+        
         # Initialize Device
         device = torch.device("cuda")
         
         # transform into tensors
         transform_train = transforms.Compose([
             transforms.RandomHorizontalFlip(),
-            transforms.RandomResizedCrop((112,112)),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-        ])
-        
-        transform = transforms.Compose([
             transforms.Resize((112, 112)),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
+        
+        # transform = transforms.Compose([
+        #     transforms.Resize((112, 112)),
+        #     transforms.ToTensor(),
+        #     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        # ])
         
         # transform = transforms.Compose([
         #     transforms.ToTensor(),
@@ -66,9 +68,9 @@ def train_bins(file_path, target_bin= None):
         # ])
         
         # Initialize Image Dataset Class
-        train_bin = torchvision.datasets.ImageFolder(root= f'./data/M2FPA/Train_Bins_Raw/{pose_bin}', transform= transform)
+        train_bin = torchvision.datasets.ImageFolder(root= f'./data/M2FPA/{bin_name}/{pose_bin}', transform= transform_train)
         # train_bin = Image_Dataset(data_path, transform)
-        dataloader = DataLoader(dataset=train_bin, batch_size=128, shuffle=True, num_workers=4)
+        dataloader = DataLoader(dataset=train_bin, batch_size=256, shuffle=True, num_workers=4)
         num_classes = len(set(train_bin))
         print(num_classes)
         
@@ -106,7 +108,7 @@ def train_bins(file_path, target_bin= None):
         optimizer = torch.optim.SGD([{'params': models.parameters()},
                                     {'params': metric_fc.parameters()}],
                                     lr = 1e-1, weight_decay= cfg.weight_decay, momentum= cfg.momentum)  # Can use Adam or SGD
-        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones= [30, 80, 120, 170], gamma= 0.1)
+        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones= [10, 40, 120, 170], gamma= 0.1)
 
         # Train Model with Provided ArcFace 
         start = time.time()
@@ -134,8 +136,6 @@ def train_bins(file_path, target_bin= None):
             if epoch % 50 == 0 and epoch != 0:
                 # Save Weights from metric_fc and resnet50
                 torch.save(models.state_dict(), f'./models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_Raw_10_epochs_{pose_bin}.pth')
-                # torch.save(metric_fc.state_dict(), f'./models/weights/weights_M2FPA_pose_bin/arcface_weights_M2FPA_Expanded_10_epochs_{pose_bin}.pth')
-
 
             for i, (images, labels) in enumerate(dataloader):
                 
@@ -181,12 +181,10 @@ def train_bins(file_path, target_bin= None):
 
         # Save Weights from metric_fc and resnet50
         torch.save(models.state_dict(), f'./models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_Raw_10_epochs_{pose_bin}.pth')
-        # torch.save(metric_fc.state_dict(), f'./models/weights/weights_M2FPA_pose_bin/arcface_weights_M2FPA_Expanded_10_epochs_{pose_bin}.pth')
         print("Saved")
         
         visualize_loss(history= history, bin= pose_bin)
     
 if __name__ == '__main__':
     file_path = './data/M2FPA/Train_Bins_Raw'
-    train_bins(file_path= file_path, target_bin= None)
-
+    train_bins(file_path= file_path, target_bin= ['-30_0_-45_0_45', '0_30_-45_0_45'])
