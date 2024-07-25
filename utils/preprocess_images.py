@@ -3,19 +3,22 @@ import skimage.transform
 import numpy as np
 import skimage.io
 import os
-# you use this just before passing any image to a CNN
-# which usually expects square images
-# however your input images can be of variable size
-# you don't want to just squash the images to a square
-# because you will lose valuable aspect ratio information
-# you want to resize while preserving the aspect ratio
-# these 2 functions perform this resizing behaviour
-# images are assumed to be formatted as Height, Width, Channels
-# we will use bound_image_dim to first bound the image to a range
-# the smallest dimension will be scaled up to the min_size
-# the largest dimension will be scaled down to the max_size
-# then afterwards you square_pad_image to pad the image to a square
-# filling the empty space with zeros
+
+'''
+you use this just before passing any image to a CNN
+which usually expects square images
+however your input images can be of variable size
+you don't want to just squash the images to a square
+because you will lose valuable aspect ratio information
+you want to resize while preserving the aspect ratio
+these 2 functions perform this resizing behaviour
+images are assumed to be formatted as Height, Width, Channels
+we will use bound_image_dim to first bound the image to a range
+the smallest dimension will be scaled up to the min_size
+the largest dimension will be scaled down to the max_size
+then afterwards you square_pad_image to pad the image to a square
+filling the empty space with zeros
+'''
 
 '''
 To preserve aspect ratio:
@@ -96,8 +99,7 @@ def preprocess_image(file_path, output_size):
     return padded_image
 
 if __name__ == '__main__':
-    # Set the directory paths
-    input_dir = './data/M2FPA/Train_Bins_Cropped_Expanded_Processed/0_30_-30_30_+-70_+-90'
+    input_dir = './data/M2FPA/Test_Bins_all_pitch_cropped' # Set the directory paths
 
     # Set the desired size for padding
     desired_size = 112
@@ -108,17 +110,10 @@ if __name__ == '__main__':
             # Check for image files (you might want to check for specific extensions)
             if file.lower().endswith(('.png', '.jpg', '.jpeg')):
                 file_path = os.path.join(root, file)
-                # Read the image
-                image = skimage.io.imread(file_path)
-                
-                # Process the image
-                # bounded_image = bound_image_dim(image, min_size=None, max_size=None)
-                # squared_image = square_pad_image(bounded_image, desired_size)
-                
-                squared_image = preprocess_image(file_path, desired_size)
-                
-                # Save the processed image
-                skimage.io.imsave(file_path, squared_image)
+                image = skimage.io.imread(file_path) # Read the image            
+                squared_image = preprocess_image(file_path, desired_size) # Process the image
+                skimage.io.imsave(file_path, squared_image) # Save the processed image
+
 
     print("Processing complete.")
         

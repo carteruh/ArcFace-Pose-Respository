@@ -30,7 +30,12 @@ from visualize_loss import visualize_loss
 from datasets.dataset import Image_Dataset
 import os
 
-def train_bins(file_path, target_bin= None):
+'''
+We fine-tune the ArcFace model by specified pose group. To do this, we freeze the hidden layers, leaving the
+final dense layer and batch normalization steps to generate face embeddings in the latent space 
+'''
+
+def train_bins(file_path, target_bin= None, Augment= False, pretrained= True):
     # Get personal configuration
     cfg = get_config()
     # data_path = 'data/pickles/helen_train.pkl'
@@ -42,53 +47,56 @@ def train_bins(file_path, target_bin= None):
     else:
         pose_bin_list = [pose_bin for pose_bin in os.listdir(file_path)]
     
-    # for pose_bin in os.listdir(file_path):
     for pose_bin in pose_bin_list:
         
         # Initialize Device
         device = torch.device("cuda")
         
-        # transform into tensors
-        # transform_train = transforms.Compose([
-        #     transforms.RandomHorizontalFlip(),
-        #     transforms.Resize((112, 112)),
-        #     transforms.ToTensor(),
-        #     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-        # ])
-        
-        transform = transforms.Compose([
-            transforms.Resize((112, 112)),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-        ])
-        
-        # transform = transforms.Compose([
-        #     transforms.ToTensor(),
-        #     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-        # ])
+        # transform into tensors 
+        if Augment == True: 
+            # Use if experiment requires flipping images throughout training
+            transform = transforms.Compose([
+                transforms.RandomHorizontalFlip(),
+                transforms.Resize((112, 112)),
+                # transforms.RandomResizedCrop((112,112)),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            ])
+        else: 
+            # Standard resizing and training on normalizaed images
+            transform = transforms.Compose([
+                # transforms.Resize((112, 112)),
+                #transforms.RandomResizedCrop((112,112)),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            ])
         
         # Initialize Image Dataset Class
         train_bin = torchvision.datasets.ImageFolder(root= f'./data/M2FPA/{bin_name}/{pose_bin}', transform= transform)
         # train_bin = Image_Dataset(data_path, transform)
         dataloader = DataLoader(dataset=train_bin, batch_size=256, shuffle=True, num_workers=4)
-        num_classes = len(set(train_bin))
+        num_classes = len(set(train_bin.classes))
         print(num_classes)
         
         # dataloader = DataLoader(train_bin, batch_size= 128, shuffle= True, num_workers=2, collate_fn= None, pin_memory= True)
 
         # Initialize resnet backbone
-        if cfg.backbone == "r50":
-            models = torchvision.models.resnet50(pretrained=True)
-            for param in models.parameters():
-                param.requires_grad_(False)
-            models.fc= nn.Linear(2048, 512)
-            models.fc.requires_grad_(True)
-            models.to(device)
-        elif cfg.backbone == "ir50":
-            models = iresnet50(pretrained= True)
-            for param in models.parameters():
-                param.requires_grad_(False)
-            models.fc.requires_grad_(True)
+        if pretrained:
+            if cfg.backbone == "r50":
+                models = torchvision.models.resnet50(pretrained=True)
+                for param in models.parameters():
+                    param.requires_grad_(False)
+                models.fc= nn.Linear(2048, 512)
+                models.fc.requires_grad_(True)
+                models.to(device)
+            elif cfg.backbone == "ir50":
+                models = iresnet50(pretrained= True)
+                for param in models.parameters():
+                    param.requires_grad_(False)
+                models.fc.requires_grad_(True)
+                models.to(device)
+        else:
+            models = iresnet50(pretrained= False)
             models.to(device)
             # models.load_state_dict(torch.load('./models/weights/resnet50_weights_AFW_250_epochs_all_poses.pth', map_location= device))
 
@@ -108,7 +116,8 @@ def train_bins(file_path, target_bin= None):
         optimizer = torch.optim.SGD([{'params': models.parameters()},
                                     {'params': metric_fc.parameters()}],
                                     lr = 1e-1, weight_decay= cfg.weight_decay, momentum= cfg.momentum)  # Can use Adam or SGD
-        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones= [10, 40, 120, 170], gamma= 0.1)
+        # scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones= [10, 20, 40, 60, 80], gamma= 0.1)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size= 10, gamma= 0.1)
 
         # Train Model with Provided ArcFace 
         start = time.time()
@@ -133,9 +142,10 @@ def train_bins(file_path, target_bin= None):
             valid_loss = 0.0
             valid_acc = 0.0
             
-            if epoch % 50 == 0 and epoch != 0:
-                # Save Weights from metric_fc and resnet50
-                torch.save(models.state_dict(), f'./models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_Raw_10_epochs_{pose_bin}.pth')
+            # Only use if you are training with many epochs
+            # if epoch % 50 == 0 and epoch != 0:
+            #     # Save Weights from metric_fc and resnet50
+            #     torch.save(models.state_dict(), f'./models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_Raw_10_epochs_{pose_bin}.pth')
 
             for i, (images, labels) in enumerate(dataloader):
                 
@@ -180,11 +190,11 @@ def train_bins(file_path, target_bin= None):
             history.append({'loss': train_loss / len(dataloader), 'acc': train_acc / len(dataloader)})
 
         # Save Weights from metric_fc and resnet50
-        torch.save(models.state_dict(), f'./models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_Raw_10_epochs_{pose_bin}.pth')
+        torch.save(models.state_dict(), f'./models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_cropped_10_epochs_{pose_bin}.pth')
         print("Saved")
         
         visualize_loss(history= history, bin= pose_bin)
     
 if __name__ == '__main__':
-    file_path = './data/M2FPA/Train_Bins_Raw'
-    train_bins(file_path= file_path, target_bin= ['-30_-30_-45_0_45', '30_30_-45_0_45'])
+    file_path = './data/M2FPA/Train_Bins_all_pitch_cropped'
+    train_bins(file_path= file_path, target_bin= ['-30_30_-45_0_45'], Augment= False, pretrained= True)

@@ -2,7 +2,6 @@ from retinaface import RetinaFace
 import os
 from PIL import Image
 import shutil
-# from facenet_pytorch import MTCNN
 
 # Clean images by deploying RetinaFace
 def DetectAndAlign(root_directory_path, save_root, not_detected_root):
@@ -26,7 +25,7 @@ def DetectAndAlign(root_directory_path, save_root, not_detected_root):
                 if not os.path.exists(new_dir_path):
                     os.makedirs(new_dir_path)
                 
-                face = RetinaFace.extract_faces(img_path= file_path, align= False, allow_upscaling= False,expand_face_area= 20)
+                face = RetinaFace.extract_faces(img_path= file_path, align= True, allow_upscaling= False,expand_face_area= 20)
                      
                 # # Set new file path
                 # new_file_path = os.path.join(new_dir_path, file)
@@ -39,11 +38,11 @@ def DetectAndAlign(root_directory_path, save_root, not_detected_root):
                 if len(face) > 0:
                     face = Image.fromarray(face[0])
                     face = face.convert("RGB")
-                    print("Detected " + file)
+                    # print("Detected " + file)
                     # plt.show(face)
                     # Set new file path
                     new_file_path = os.path.join(new_dir_path, file)
-                    face.save(new_file_path)
+                    face.save(file_path)
                 # else:
                 #     print("Not Detected " + file )
                     
@@ -57,7 +56,8 @@ def DetectAndAlign(root_directory_path, save_root, not_detected_root):
                     
 
 if __name__ == '__main__':
-    root_dir = './data/M2FPA/Test'
+    root_dir = './data/M2FPA/-30_0_0_-45_synthetic_45_synthetic'
     save_root=  './data/M2FPA/Test_Cropped_Upscaled'
-    not_detected_root= './data/M2FPA/Train_Cropped_Upscaled_Not_Detected'
+    not_detected_root= './data/M2FPA/Test_Cropped_Upscaled_Not_Detected'
     DetectAndAlign(root_directory_path= root_dir, save_root= save_root, not_detected_root= not_detected_root)
+    

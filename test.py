@@ -11,10 +11,9 @@ from scipy.interpolate import make_interp_spline
 from models.resnet50 import iresnet50 
 from config.config import get_config
 
-
 def get_rank_k(query_list, gallery_list, model_weight_path, query_set_bin, gallery_set_bin):
     transform = transforms.Compose([
-        transforms.Resize((112, 112)),
+        # transforms.Resize((112, 112)),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
@@ -63,7 +62,11 @@ def get_rank_k(query_list, gallery_list, model_weight_path, query_set_bin, galle
                 if k == 1:
                     is_correct = int(any(probe_label == gallery_set['label'][i] for i in pred.to("cpu").numpy().tolist()[:k]))
                     gallery_pred = gallery_set['label'][pred[0]]
-                    print(f'Top K: {k}, Probe Label: {probe_label}, Prediction: {gallery_pred}, is correct: {is_correct}')
+                    # print(f'Top K: {k}, Probe Label: {probe_label}, Prediction: {gallery_pred}, is correct: {is_correct}')
+                    # if probe_label != gallery_pred:
+                    probe_file = query_list[probe_idx].split('/')[-1]
+                    gallery_file = gallery_list[pred[0]].split('/')[-1]
+                    print(f'Probe Path: {probe_file}, Gallery Path: {gallery_file}, correct: {is_correct}')
                 total_counts[k-1] += 1
                 top_k_accuracy[k-1] = correct_counts[k-1] / total_counts[k-1]
 
@@ -110,21 +113,29 @@ def visualize_pose_groups(query_bin_list: list,  # The pose bins that are evalua
             gallery_set_path = data[f'{gallery_bin}']['gallery']
             
             model_weight_path = f'./models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_{image_type}_10_epochs_{query_set_bin}.pth'
+            # model_weight_path = f'./models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_Raw_flip_synthetic_10_epochs_-30_0_-45_0_45.pth'
+            print(f'Loading model: {model_weight_path}')
             
             top_k_accuracies = get_rank_k(query_list=query_set_path, gallery_list=gallery_set_path, model_weight_path=model_weight_path, query_set_bin=query_set_bin, gallery_set_bin=gallery_set_bin)
             top_k_list.append(top_k_accuracies[0])
             # print(f'Rank 1 Accuracy for Pose {gallery_bin}: {top_k_accuracies[0]}')
-            accuracies.append(f"Rank 1: {top_k_accuracies[0]:.4f}, Rank 5: {top_k_accuracies[4]:.4f}")
+            # accuracies.append(f"Rank 1: {top_k_accuracies[0]:.4f}, Rank 5: {top_k_accuracies[4]:.4f}")
+            accuracies.append(f"{top_k_accuracies[0]:.4f}")
 
-        y_spline_vals = make_interp_spline(range(len(gallery_bin_list)), top_k_list)
-        x_vals = np.linspace(0, len(gallery_bin_list) - 1, 300)
-        y_vals = y_spline_vals(x_vals)
-        plt.plot(x_vals, y_vals)
+        # Smoothen out the data using spline interpolation
+        # y_spline_vals = make_interp_spline(range(len(gallery_bin_list)), top_k_list)
+        # x_vals = np.linspace(0, len(gallery_bin_list) - 1, 300)
+        # y_vals = y_spline_vals(x_vals)
+        # plt.plot(x_vals, y_vals)
+        
+        plt.plot(range(len(gallery_bin_list)), top_k_list)
+        
         results[f'Query {query_bin}'] = accuracies
         
         # Compute the average top-1 accuracy for the query set and append to end of the list
-        average_top_1 = np.mean([float(acc.split(",")[0].split(": ")[1]) for acc in accuracies]) 
-        results[f'Query {query_bin}'].append(f'{average_top_1:.4f}')
+        # average_top_1 = np.mean([float(acc.split(",")[0].split(": ")[1]) for acc in accuracies]) 
+        average_top_1 = np.mean([float(acc) for acc in accuracies]) 
+        results[f'Query {query_bin}'].append(f'{average_top_1:.5f}')
 
         
     plt.legend(query_bin_list, bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left",
@@ -144,112 +155,32 @@ if __name__ == '__main__':
     # Get configurations for testing
     cfg = get_config()
     
-    # Define the bin lists for both pitch groups
-    query_bin_list_low = ['-30_0_-90_-70', '-30_0_-70_-45','-30_0_-45_-15',
-                          '-30_0_-15_15', '-30_0_15_45', '-30_0_45_70', '-30_0_70_90']
-    
-    # query_bin_list_high = ['0_30_-90_-70', '0_30_-70_-45','0_30_-45_-15',
-    #                       '0_30_-15_15', '0_30_15_45', '0_30_45_70', '0_30_70_90']
-    
-    # query_bin_list_low = ['-30_-30_-45_0_45']
-    
-    query_bin_list_high = ['30_30_-45_0_45']
-    
+    # Define the bin lists for both pitch groups  
+    # query_bin_list = ['-30_30_-90_-70', '-30_30_-70_-45','-30_30_-45_-15', '-30_30_-15_15', '-30_30_15_45', '-30_30_45_70', '-30_30_70_90', '-30_30_-45_0_45', '-30_30_+-22.5_+-45', '-30_30_+-15_+-45', '-30_30_-45_45']   
+    query_bin_list = ['-30_30_-45_0_45']
+    query_bin_list_high = ['0_30_-45_0_45_Augmented_Negative']
     gallery_bin_list_low = ['-30_0_-90_-70', '-30_0_-70_-45','-30_0_-45_-15',
                           '-30_0_-15_15', '-30_0_15_45', '-30_0_45_70', '-30_0_70_90']
-    
     gallery_bin_list_high = ['0_30_-90_-70', '0_30_-70_-45','0_30_-45_-15',
                           '0_30_-15_15', '0_30_15_45', '0_30_45_70', '0_30_70_90']
     
-    gallery_bin_list_all_pitch = ['-30_30_-90_-70', '-30_30_-70_-45','-30_30_-45_-15',
-                          '-30_30_-15_15', '-30_30_15_45', '-30_30_45_70', '-30_30_70_90']
+    # gallery_bin_list_all_pitch = ['-30_30_-90_-70', '-30_30_-70_-45','-30_30_-45_-15',
+    #                       '-30_30_-15_15', '-30_30_15_45', '-30_30_45_70', '-30_30_70_90', '-30_30_-90_90']
     
-    # gallery_bin_list_augment = ['0_30_-45_-15_Augmented', '-30_0_-45_-15_Augmented', '0_30_15_45_Augmented', '-30_0_15_45_Augmented']
+    gallery_bin_list_all_pitch = ['-30_30_-90_-70', '-30_30_-70_-45','-30_30_-45_-15', '-30_30_-15_15', '-30_30_15_45', '-30_30_45_70', '-30_30_70_90']
+    gallery_bin_list_augments = ['-30_0_0_-45_synthetic_45_synthetic', '-30_0_-45_0_45', '-30_0_-45_0_45_Augmented']
     
     labels= ['-90_-70', '-70_-45','-45_-15',
              '-15_15', '15_45', '45_70', '70_90']
-    # labels = ['-30_-45_-15_Augmented', '0_30__-45_-15_Augmented', '-30_0_15_45_Augmented', '0_30_15_45_Augmented']
+    # labels = ['-45_0_45 (GAN+flips)', '-45_0_45 (control)', '-45_0_+45 (flips)']
+    # labels = ['-90_90']
     
     # Evaluate the probe and galleries
-    visualize_pose_groups(query_bin_list= query_bin_list_low, 
-                          gallery_bin_list= gallery_bin_list_low, 
-                          query_gallery_set_file_name= 'query_galleries_M2FPA_Bins_Raw', 
-                          fig_name= 'top_k_accuracies_M2FPA_Raw_query_pitch_-30_0_yaw_all_poses',
-                          table_name= "accuracies_table_pitch_query_pitch_-30_0_M2FPA_Raw_yaw_all_poses",
-                          image_type= "Raw",
+    visualize_pose_groups(query_bin_list= query_bin_list, 
+                          gallery_bin_list= gallery_bin_list_all_pitch, 
+                          query_gallery_set_file_name= 'query_galleries_M2FPA_Bins_all_pitch_cropped', 
+                          fig_name= 'top_k_accuracies_M2FPA_Raw_query_pitch_-30_30_yaw_-45_0_45_gallery_pitch_-30_30_yaw_-90_90_images_cropped',
+                          table_name= "accuracies_table_align_query_pitch_-30_30_yaw_-45_0_45_gallery_pitch_-30_30_yaw_-90_90_images_cropped",
+                          image_type= "cropped",
                           labels= labels
                           )
-    
-    
-    
-    
-    
-    
-    
-    # # Open and load the .pkl file
-    # with open('./test_sets/query_galleries_M2FPA_Bins_Raw.pkl', 'rb') as f:
-    #     data = pickle.load(f)
-        
-    # # Define the bin lists for both pitch groups
-    # # query_bin_list_low = ['-30_0_-90_-70', '-30_0_-70_-45','-30_0_-45_-15',
-    # #                       '-30_0_-15_15', '-30_0_15_45', '-30_0_45_70', '-30_0_70_90']
-    
-    # # query_bin_list_high = ['0_30_-90_-70', '0_30_-70_-45','0_30_-45_-15',
-    # #                       '0_30_-15_15', '0_30_15_45', '0_30_45_70', '0_30_70_90']
-    
-    # query_bin_list_low = ['-30_0_-45_45']
-    
-    # query_bin_list_high = ['0_30_-45_45']
-    
-
-    # gallery_bin_list_low = ['-30_0_-90_-70', '-30_0_-70_-45','-30_0_-45_-15',
-    #                       '-30_0_-15_15', '-30_0_15_45', '-30_0_45_70', '-30_0_70_90']
-    
-    # gallery_bin_list_high = ['0_30_-90_-70', '0_30_-70_-45','0_30_-45_-15',
-    #                       '0_30_-15_15', '0_30_15_45', '0_30_45_70', '0_30_70_90']
- 
-    # results = {}
-
-    # # Initialize figure and figure configurations
-    # plt.figure()
-    # plt.xticks(range(len(gallery_bin_list_high)),labels= ['-90_-70', '-70_-45','-45_-15',
-    #                       '-15_15', '15_45', '45_70', '70_90'])
-    # plt.ylim([0, 1.1])
-    # plt.xlabel("Yaw Pose Groups in Gallery")
-    # plt.ylabel("Rank-1 Accuracy")
-    # plt.tight_layout(rect=[0, 0, 0.75, 1])
-    # plt.subplots_adjust(right=1.3)
-    
-    # # iterate through query list and gallery list
-    # for query_bin in query_bin_list_low:
-    #     accuracies = []
-    #     top_k_list = []
-    #     for gallery_bin in gallery_bin_list_high:   
-    #         query_set_bin = f'{query_bin}'
-    #         gallery_set_bin = f'{gallery_bin}'
-
-    #         query_set_path = data[f'{query_bin}']['query']
-    #         gallery_set_path = data[f'{gallery_bin}']['gallery']
-            
-    #         model_weight_path = f'./models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_Raw_10_epochs_{query_set_bin}.pth'
-            
-    #         top_k_accuracies = get_rank_k(query_list=query_set_path, gallery_list=gallery_set_path, model_weight_path=model_weight_path, query_set_bin=query_set_bin, gallery_set_bin=gallery_set_bin)
-    #         top_k_list.append(top_k_accuracies[0])
-    #         # print(f'Rank 1 Accuracy for Pose {gallery_bin}: {top_k_accuracies[0]}')
-    #         accuracies.append(f"Rank 1: {top_k_accuracies[0]:.4f}, Rank 5: {top_k_accuracies[4]:.4f}")
-
-    #     y_spline_vals = make_interp_spline(range(len(gallery_bin_list_high)), top_k_list)
-    #     x_vals = np.linspace(0, len(gallery_bin_list_high) - 1, 300)
-    #     y_vals = y_spline_vals(x_vals)
-    #     plt.plot(x_vals, y_vals)
-    #     results[f'Query {query_bin}'] = accuracies
-        
-    # plt.legend(query_bin_list_low, bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left",
-    #             mode="expand", borderaxespad=0, ncol=3, title= 'Yaw Groups')
-    # plt.savefig(f'./data/plot_images/Pose_Bin_Visualizations/top_k_accuracies_M2FPA_Raw_mixed_query_pitch_-30_0_merged_-45_45.jpg', bbox_inches= 'tight')
-    # plt.close()
-
-    # results_df = pd.DataFrame(results, index=[f'Gallery {bin}' for bin in gallery_bin_list_high])
-
-    # results_df.to_csv('./data/table_metrics/accuracies_table_pitch_mixed_query_pitch_-30_0_M2FPA_Raw_merged_-45_45.csv')
-    # print(results_df)

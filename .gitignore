@@ -9,3 +9,5 @@
 *.jpg
 *.jpeg
 /retinaface/
+/OSTeC/
+/face_pose_augmentation/
