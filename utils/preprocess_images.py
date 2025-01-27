@@ -11,7 +11,7 @@ however your input images can be of variable size
 you don't want to just squash the images to a square
 because you will lose valuable aspect ratio information
 you want to resize while preserving the aspect ratio
-these 2 functions perform this resizing behaviour
+these 2 functions perform this resizing behavior
 images are assumed to be formatted as Height, Width, Channels
 we will use bound_image_dim to first bound the image to a range
 the smallest dimension will be scaled up to the min_size
@@ -99,7 +99,7 @@ def preprocess_image(file_path, output_size):
     return padded_image
 
 if __name__ == '__main__':
-    input_dir = './data/M2FPA/Test_Bins_all_pitch_cropped' # Set the directory paths
+    input_dir = './data/M2FPA/Train_Bins_yaw_degradation' # Set the directory paths
 
     # Set the desired size for padding
     desired_size = 112

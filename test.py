@@ -11,9 +11,15 @@ from scipy.interpolate import make_interp_spline
 from models.resnet50 import iresnet50 
 from config.config import get_config
 
+"""
+Conduct model performance evaluation of probe images from probe sets against gallery sets. We initialize the 
+appropriate pose sets collected in data and test distinct pose sets from the gallery against a query set 
+composed of all poses
+"""
+
 def get_rank_k(query_list, gallery_list, model_weight_path, query_set_bin, gallery_set_bin):
     transform = transforms.Compose([
-        # transforms.Resize((112, 112)),
+        transforms.Resize((112, 112)),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
@@ -84,6 +90,7 @@ def visualize_pose_groups(query_bin_list: list,  # The pose bins that are evalua
     table_name: str= 'accuracies_table', # The table name for all the top 1 and top 5 accuracies of the pose group
     image_type: str = "Raw",  #  Describe the image type that is being trained on
     labels: list = ['-90_-70', '-70_-45','-45_-15','-15_15', '15_45', '45_70', '70_90'],
+    model_weights: list = ['./models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_Raw_all_pitch_10_epochs_-30_30_-45_0_45.pth'] 
     ):
     
     # Open and load the .pkl file
@@ -95,8 +102,8 @@ def visualize_pose_groups(query_bin_list: list,  # The pose bins that are evalua
     # Initialize figure and figure configurations
     plt.figure()
     plt.xticks(range(len(gallery_bin_list)),labels= labels)
-    plt.ylim([0, 1.1])
-    plt.xlabel("Yaw Pose Groups in Gallery")
+    plt.ylim([0, 0.7])
+    plt.xlabel("Yaw Pose in Gallery")
     plt.ylabel("Rank-1 Accuracy")
     plt.tight_layout(rect=[0, 0, 0.75, 1])
     plt.subplots_adjust(right=1.3)
@@ -112,14 +119,13 @@ def visualize_pose_groups(query_bin_list: list,  # The pose bins that are evalua
             query_set_path = data[f'{query_bin}']['query']
             gallery_set_path = data[f'{gallery_bin}']['gallery']
             
-            model_weight_path = f'./models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_{image_type}_10_epochs_{query_set_bin}.pth'
-            # model_weight_path = f'./models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_Raw_flip_synthetic_10_epochs_-30_0_-45_0_45.pth'
+            # model_weight_path = f'./models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_{image_type}_10_epochs_{query_set_bin}.pth'
+            # model_weight_path = f'./models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_Raw_all_pitch_10_epochs_-30_30_-45_0_45.pth'
+            model_weight_path = model_weights[gallery_bin]
             print(f'Loading model: {model_weight_path}')
             
             top_k_accuracies = get_rank_k(query_list=query_set_path, gallery_list=gallery_set_path, model_weight_path=model_weight_path, query_set_bin=query_set_bin, gallery_set_bin=gallery_set_bin)
             top_k_list.append(top_k_accuracies[0])
-            # print(f'Rank 1 Accuracy for Pose {gallery_bin}: {top_k_accuracies[0]}')
-            # accuracies.append(f"Rank 1: {top_k_accuracies[0]:.4f}, Rank 5: {top_k_accuracies[4]:.4f}")
             accuracies.append(f"{top_k_accuracies[0]:.4f}")
 
         # Smoothen out the data using spline interpolation
@@ -138,7 +144,7 @@ def visualize_pose_groups(query_bin_list: list,  # The pose bins that are evalua
         results[f'Query {query_bin}'].append(f'{average_top_1:.5f}')
 
         
-    plt.legend(query_bin_list, bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left",
+    plt.legend(["Probe Set: -90° to 90°"], bbox_to_anchor=(0, 1.02, 1, 0.2), loc="lower left",
                 mode="expand", borderaxespad=0, ncol=3, title= 'Yaw Groups')
     plt.savefig(f'./data/plot_images/Pose_Bin_Visualizations/{fig_name}.jpg', bbox_inches= 'tight')
     plt.close()
@@ -156,31 +162,35 @@ if __name__ == '__main__':
     cfg = get_config()
     
     # Define the bin lists for both pitch groups  
-    # query_bin_list = ['-30_30_-90_-70', '-30_30_-70_-45','-30_30_-45_-15', '-30_30_-15_15', '-30_30_15_45', '-30_30_45_70', '-30_30_70_90', '-30_30_-45_0_45', '-30_30_+-22.5_+-45', '-30_30_+-15_+-45', '-30_30_-45_45']   
-    query_bin_list = ['-30_30_-45_0_45']
-    query_bin_list_high = ['0_30_-45_0_45_Augmented_Negative']
+    query_bin_list = ['-30_30_-90_90']  # Query bin represents probe images of random poses across the whole pose range
+
     gallery_bin_list_low = ['-30_0_-90_-70', '-30_0_-70_-45','-30_0_-45_-15',
                           '-30_0_-15_15', '-30_0_15_45', '-30_0_45_70', '-30_0_70_90']
     gallery_bin_list_high = ['0_30_-90_-70', '0_30_-70_-45','0_30_-45_-15',
                           '0_30_-15_15', '0_30_15_45', '0_30_45_70', '0_30_70_90']
     
-    # gallery_bin_list_all_pitch = ['-30_30_-90_-70', '-30_30_-70_-45','-30_30_-45_-15',
-    #                       '-30_30_-15_15', '-30_30_15_45', '-30_30_45_70', '-30_30_70_90', '-30_30_-90_90']
+    gallery_bin_list = ['0_0_0_0', '0_0_15_15', '0_0_30_30', '0_0_45_45', '0_0_75_75', '0_0_90_90']
     
-    gallery_bin_list_all_pitch = ['-30_30_-90_-70', '-30_30_-70_-45','-30_30_-45_-15', '-30_30_-15_15', '-30_30_15_45', '-30_30_45_70', '-30_30_70_90']
-    gallery_bin_list_augments = ['-30_0_0_-45_synthetic_45_synthetic', '-30_0_-45_0_45', '-30_0_-45_0_45_Augmented']
-    
-    labels= ['-90_-70', '-70_-45','-45_-15',
-             '-15_15', '15_45', '45_70', '70_90']
-    # labels = ['-45_0_45 (GAN+flips)', '-45_0_45 (control)', '-45_0_+45 (flips)']
-    # labels = ['-90_90']
+    # labels= ['-90_-70', '-70_-45','-45_-15',
+            #  '-15_15', '15_45', '45_70', '70_90']
+            
+    model_weights = {'0_0_0_0':'./models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_yaw_degradation_10_epochs_0_0_0_0.pth',
+                     '0_0_15_15': './models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_yaw_degradation_10_epochs_0_0_15_15.pth',
+                     '0_0_30_30': './models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_yaw_degradation_10_epochs_0_0_30_30.pth',
+                     '0_0_45_45': './models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_yaw_degradation_10_epochs_0_0_45_45.pth',
+                     '0_0_75_75': './models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_yaw_degradation_10_epochs_0_0_75_75.pth',
+                     '0_0_90_90': './models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_yaw_degradation_10_epochs_0_0_90_90.pth'
+                     }
+    labels = ['0°', '15°', '30°', '45°', '75°', '90°']
+
     
     # Evaluate the probe and galleries
     visualize_pose_groups(query_bin_list= query_bin_list, 
-                          gallery_bin_list= gallery_bin_list_all_pitch, 
-                          query_gallery_set_file_name= 'query_galleries_M2FPA_Bins_all_pitch_cropped', 
-                          fig_name= 'top_k_accuracies_M2FPA_Raw_query_pitch_-30_30_yaw_-45_0_45_gallery_pitch_-30_30_yaw_-90_90_images_cropped',
-                          table_name= "accuracies_table_align_query_pitch_-30_30_yaw_-45_0_45_gallery_pitch_-30_30_yaw_-90_90_images_cropped",
+                          gallery_bin_list= gallery_bin_list, 
+                          query_gallery_set_file_name= 'query_galleries_M2FPA_Bins_yaw_degradation', 
+                          fig_name= 'top_k_accuracies_M2FPA_Raw_query_pitch_-30_30_yaw_all_gallery_pitch_-30_0_yaw_-45_0_45_image_reduction_experiment',
+                          table_name= "accuracies_table_align_query_pitch_-30_30_yaw_all_gallery_pitch_-30_0_yaw_-45_0_45_image_reduction_experiment",
                           image_type= "cropped",
-                          labels= labels
+                          labels= labels,
+                          model_weights= model_weights
                           )

@@ -61,6 +61,6 @@ if __name__ == '__main__':
     # pose_bins = [(0, 0, -15, 15), (0, 0, -45, -15), 
     #              (0, 0, 15, 45), (0, 0, -70, -45),(0, 0, 45, 70)
     #              ,(0, 0, -90,-70),(0, 0, 70, 90)]
-    pose_bins = [(-30, 30, -90, 90)]
+    pose_bins = [(0, 0, 0, 0), (0, 0, 15, 15), (0, 0, 22.5, 22.5), (0, 0, 30, 30), (0, 0, 45, 45), (0, 0, 67.5, 67.5), (0, 0, 75, 75), (0, 0, 90, 90)]
     
-    Get_Pose_Bin(folder_path= "./data/M2FPA/Train", dest_path= "./data/M2FPA/Train_Bins_all_pitch/", pose_bins= pose_bins)
+    Get_Pose_Bin(folder_path= "./data/M2FPA/Test", dest_path= "./data/M2FPA/Test_Bins_yaw_degradation/", pose_bins= pose_bins)

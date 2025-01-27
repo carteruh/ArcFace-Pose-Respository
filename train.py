@@ -74,7 +74,7 @@ def train_bins(file_path, target_bin= None, Augment= False, pretrained= True):
         # Initialize Image Dataset Class
         train_bin = torchvision.datasets.ImageFolder(root= f'./data/M2FPA/{bin_name}/{pose_bin}', transform= transform)
         # train_bin = Image_Dataset(data_path, transform)
-        dataloader = DataLoader(dataset=train_bin, batch_size=256, shuffle=True, num_workers=4)
+        dataloader = DataLoader(dataset=train_bin, batch_size=16, shuffle=True, num_workers=4)
         num_classes = len(set(train_bin.classes))
         print(num_classes)
         
@@ -190,11 +190,11 @@ def train_bins(file_path, target_bin= None, Augment= False, pretrained= True):
             history.append({'loss': train_loss / len(dataloader), 'acc': train_acc / len(dataloader)})
 
         # Save Weights from metric_fc and resnet50
-        torch.save(models.state_dict(), f'./models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_cropped_10_epochs_{pose_bin}.pth')
+        torch.save(models.state_dict(), f'./models/weights/weights_M2FPA_pose_bin/resnet50_weights_M2FPA_yaw_degradation_10_epochs_{pose_bin}.pth')
         print("Saved")
         
         visualize_loss(history= history, bin= pose_bin)
     
 if __name__ == '__main__':
-    file_path = './data/M2FPA/Train_Bins_all_pitch_cropped'
-    train_bins(file_path= file_path, target_bin= ['-30_30_-45_0_45'], Augment= False, pretrained= True)
+    file_path = './data/M2FPA/Train_Bins_yaw_degradation'
+    train_bins(file_path= file_path, target_bin= ['0_0_0_0', '0_0_15_15', '0_0_30_30', '0_0_45_45', '0_0_75_75', '0_0_90_90'], Augment= False, pretrained= True)

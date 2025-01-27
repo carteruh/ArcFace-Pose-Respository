@@ -8,6 +8,6 @@
 *.csv
 *.jpg
 *.jpeg
-/retinaface/
-/OSTeC/
+/retinaface
+/OSTeC
 /face_pose_augmentation/
